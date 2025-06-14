@@ -6,15 +6,24 @@ namespace uAccountPlan.Domain.Services
 {
     public class AccountPlanService : IAccountPlanService
     {
-        private readonly IAccountPlanInterface _accountPlanRepository;
+        private readonly IAccountPlanRepository _accountPlanRepository;
         
-        public AccountPlanService(IAccountPlanInterface accountPlanRepository)
+        public AccountPlanService(IAccountPlanRepository accountPlanRepository)
         {
             _accountPlanRepository = accountPlanRepository ?? throw new ArgumentNullException(nameof(accountPlanRepository));
         }
 
-        public async Task CreateAccountPlanAsync(AccountPlan accountPlan)
+        public async Task AddAccountPlanAsync(AccountPlan accountPlan)
         {
+            if(accountPlan.ParentId != null)
+            {
+                var parentAccountPlan = await _accountPlanRepository.GetByIdAsync(accountPlan.ParentId.Value);
+                if (parentAccountPlan == null)
+                {
+                    throw new ArgumentException($"Parent account plan with ID {accountPlan.ParentId} does not exist.");
+                }
+            }
+
             await _accountPlanRepository.AddAsync(accountPlan);
         }
 

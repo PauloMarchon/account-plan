@@ -5,7 +5,7 @@ using uAccountPlan.Domain.Entities;
 
 namespace uAccountPlan.Domain.Interfaces
 {
-    public interface IAccountPlanInterface
+    public interface IAccountPlanRepository
     {
         Task<IEnumerable<AccountPlan>> GetAllAsync();
         Task<AccountPlan?> GetByIdAsync(Guid id);
