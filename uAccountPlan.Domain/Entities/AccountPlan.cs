@@ -34,18 +34,10 @@ namespace uAccountPlan.Domain.Entities
             ParentId = parentId;
         }
 
-        public static AccountPlan CreateParent(string code, string name, AccountPlanType type, bool acceptsLaunches)
+        public static AccountPlan Create(string code, string name, AccountPlanType type, bool acceptsLaunches, Guid? parentId = null)
         {
-            if (acceptsLaunches)
-                throw new ArgumentException("Parent account plan does not accept launches.");
-
-            return new AccountPlan(code, name, type, acceptsLaunches, null);
-        }
-
-        public static AccountPlan CreateChild(string code, string name, AccountPlanType type, bool acceptsLaunches, Guid parentId)
-        {
-            if (parentId == Guid.Empty)
-                throw new ArgumentException("ParentId cannot be empty for child accounts.");
+            if (parentId.HasValue && parentId.Value == Guid.Empty)
+                throw new ArgumentException("ParentId cannot be empty if provided.");
 
             return new AccountPlan(code, name, type, acceptsLaunches, parentId);
         }

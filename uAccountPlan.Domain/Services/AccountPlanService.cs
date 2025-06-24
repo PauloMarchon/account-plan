@@ -16,7 +16,7 @@ namespace uAccountPlan.Domain.Services
         {
             _accountPlanRepository = accountPlanRepository;
         }
-
+  
         public async Task AddAccountPlanAsync(AccountPlan accountPlan)
         {
             if (accountPlan.ParentId != null)
@@ -28,6 +28,9 @@ namespace uAccountPlan.Domain.Services
 
                 if (parentAccountPlan.Type != accountPlan.Type)
                     throw new ArgumentException("Child account plan type must match parent account plan type.");
+
+                if (parentAccountPlan.AcceptsLaunches)
+                    throw new ArgumentException("The account that accepts entries cannot have child accounts.");
             }
 
             var existingAccountPlan = (await _accountPlanRepository.GetAllAsync())
