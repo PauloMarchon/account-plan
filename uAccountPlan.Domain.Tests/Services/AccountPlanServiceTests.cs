@@ -24,9 +24,9 @@ namespace uAccountPlan.Domain.Tests.Services
 
             var accountPlans = new List<AccountPlan>
             {
-                AccountPlan.CreateParent("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false ),
-                AccountPlan.CreateParent("3.0", "Parent Account Plan", AccountPlanType.REVENUE, false ),
-                AccountPlan.CreateChild("3.1", "Child Account Plan 1", AccountPlanType.REVENUE, true, parentId),
+                AccountPlan.Create("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false ),
+                AccountPlan.Create("3.0", "Parent Account Plan", AccountPlanType.REVENUE, false ),
+                AccountPlan.Create("3.1", "Child Account Plan 1", AccountPlanType.REVENUE, true, parentId),
             };
             
             _mockAccountPlanRepository.Setup(repo => repo.GetAllAsync()).ReturnsAsync(accountPlans);
@@ -48,7 +48,7 @@ namespace uAccountPlan.Domain.Tests.Services
         {
             // Arrange
             var accountPlan = AccountPlan
-                .CreateParent("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
+                .Create("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
             
             _mockAccountPlanRepository.Setup(repo => repo.GetByIdAsync(accountPlan.Id)).ReturnsAsync(accountPlan);
             
@@ -88,7 +88,7 @@ namespace uAccountPlan.Domain.Tests.Services
         {
             // Arrange
             var accountPlan = AccountPlan
-                .CreateParent("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
+                .Create("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
             
             _mockAccountPlanRepository.Setup(repo => repo.GetAllAsync()).ReturnsAsync(new List<AccountPlan>());
             
@@ -108,10 +108,10 @@ namespace uAccountPlan.Domain.Tests.Services
             var newAccountPlanCode = "2.0";
             
             var newAccountPlan = AccountPlan
-                .CreateParent(newAccountPlanCode, "Parent Account Plan", AccountPlanType.REVENUE, false);
+                .Create(newAccountPlanCode, "Parent Account Plan", AccountPlanType.REVENUE, false);
             
             var existingAccountPlan = AccountPlan
-                .CreateParent(newAccountPlanCode, "Parent Account Plan", AccountPlanType.REVENUE, false);
+                .Create(newAccountPlanCode, "Parent Account Plan", AccountPlanType.REVENUE, false);
 
             _mockAccountPlanRepository.Setup(repo => repo.GetAllAsync()).ReturnsAsync(new List<AccountPlan> { existingAccountPlan });
             
@@ -129,7 +129,7 @@ namespace uAccountPlan.Domain.Tests.Services
             // Arrange
             var nonExistingParentId = Guid.NewGuid();
             var childAccountPlan = AccountPlan
-                .CreateChild("3.1", "Child Account Plan", AccountPlanType.REVENUE, true, nonExistingParentId);
+                .Create("3.1", "Child Account Plan", AccountPlanType.REVENUE, true, nonExistingParentId);
             
             _mockAccountPlanRepository.Setup(repo => repo.GetByIdAsync(nonExistingParentId)).ReturnsAsync((AccountPlan?)null);
 
@@ -148,10 +148,10 @@ namespace uAccountPlan.Domain.Tests.Services
         {
             // Arrange
             var parentAccountPlan = AccountPlan
-                .CreateParent("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
+                .Create("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
             
             var childAccountPlan = AccountPlan
-                .CreateChild("2.1", "Child Account Plan", AccountPlanType.EXPENSE, true, parentAccountPlan.Id);
+                .Create("2.1", "Child Account Plan", AccountPlanType.EXPENSE, true, parentAccountPlan.Id);
             
             _mockAccountPlanRepository.Setup(repo => repo.GetByIdAsync(parentAccountPlan.Id)).ReturnsAsync(parentAccountPlan);
             
@@ -166,11 +166,33 @@ namespace uAccountPlan.Domain.Tests.Services
         }
 
         [Fact]
+        public async Task AddAccountPlanAsync_ShouldThrowArgumentException_WhenParentAccountPlanAcceptsLaunches()
+        {
+            // Arrange
+            var parentAccountPlan = AccountPlan
+                .Create("2.0", "Parent Account Plan", AccountPlanType.REVENUE, true);
+            
+            var childAccountPlan = AccountPlan
+                .Create("2.1", "Child Account Plan", AccountPlanType.REVENUE, true, parentAccountPlan.Id);
+            
+            _mockAccountPlanRepository.Setup(repo => repo.GetByIdAsync(parentAccountPlan.Id)).ReturnsAsync(parentAccountPlan);
+            
+            _mockAccountPlanRepository.Setup(repo => repo.GetAllAsync()).ReturnsAsync(new List<AccountPlan>());
+            
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() => _service.AddAccountPlanAsync(childAccountPlan));
+            
+            Assert.Equal("The account that accepts entries cannot have child accounts.", exception.Message);
+            
+            _mockAccountPlanRepository.Verify(repo => repo.AddAsync(It.IsAny<AccountPlan>()), Times.Never);
+        }
+
+        [Fact]
         public async Task DeleteAccountPlanAsync_ShouldDeleteById_WhenExists()
         {
             // Arrange
             var accountPlan = AccountPlan
-                .CreateParent("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
+                .Create("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
             
             _mockAccountPlanRepository.Setup(repo => repo.DeleteAsync(accountPlan.Id)).Returns(Task.CompletedTask);
             
@@ -186,7 +208,7 @@ namespace uAccountPlan.Domain.Tests.Services
         {
             // Arrange
             var accountPlan = AccountPlan
-                .CreateParent("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
+                .Create("2.0", "Parent Account Plan", AccountPlanType.REVENUE, false);
             
             _mockAccountPlanRepository.Setup(repo => repo.DeleteAsync(accountPlan)).Returns(Task.CompletedTask);
             

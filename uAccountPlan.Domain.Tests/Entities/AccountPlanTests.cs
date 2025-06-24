@@ -10,14 +10,12 @@ namespace uAccountPlan.Domain.Tests.Entities
             yield return new object[] { "", "Parent Account Plan", AccountPlanType.EXPENSE, false, "Code cannot be null or empty." };
             yield return new object[] { "2.0", "", AccountPlanType.EXPENSE, false, "Name cannot be null or empty." };
             yield return new object[] { "2.0", " ", AccountPlanType.EXPENSE, false, "Name cannot be null or empty." };
-            yield return new object[] { "2.0", "Parent Account Plan", (AccountPlanType)999, false, "Type must be either REVENUE or EXPENSE." };
-            yield return new object[] { "2.0", "Parent Account Plan", AccountPlanType.EXPENSE, true, "Parent account plan does not accept launches." };
+            yield return new object[] { "2.0", "Parent Account Plan", (AccountPlanType)999, false, "Type must be either REVENUE or EXPENSE." };         
         }
 
         public static IEnumerable<object[]> InvalidChildAccountPlanData()
         {
-            yield return new object[] { "2.1", "Child Account Plan", AccountPlanType.EXPENSE, true, Guid.Empty, "ParentId cannot be empty for child accounts." };
-            yield return new object[] { "2.1", "Child Account Plan", AccountPlanType.EXPENSE, true, null, "ParentId cannot be empty for child accounts." };
+            yield return new object[] { "2.1", "Child Account Plan", AccountPlanType.EXPENSE, true, Guid.Empty, "ParentId cannot be empty if provided." };
         }
 
         [Fact]
@@ -30,7 +28,7 @@ namespace uAccountPlan.Domain.Tests.Entities
             bool acceptsLaunches = false;
 
             // Act
-            var accountPlan = AccountPlan.CreateParent(code, name, type, acceptsLaunches);
+            var accountPlan = AccountPlan.Create(code, name, type, acceptsLaunches);
 
             // Assert
             Assert.NotNull(accountPlan);
@@ -53,7 +51,7 @@ namespace uAccountPlan.Domain.Tests.Entities
             Guid parentId = Guid.NewGuid();
 
             // Act
-            var accountPlan = AccountPlan.CreateChild(code, name, type, acceptsLaunches, parentId);
+            var accountPlan = AccountPlan.Create(code, name, type, acceptsLaunches, parentId);
 
             // Assert
             Assert.NotNull(accountPlan);
@@ -70,16 +68,16 @@ namespace uAccountPlan.Domain.Tests.Entities
         public void CreateParentAccountPlan_ShouldThrowArgumentException_WhenInvalidParametersAreProvided(string code, string name, AccountPlanType type, bool acceptsLaunches, string expectedMessage)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => AccountPlan.CreateParent(code, name, type, acceptsLaunches));
+            var exception = Assert.Throws<ArgumentException>(() => AccountPlan.Create(code, name, type, acceptsLaunches));
             Assert.Equal(expectedMessage, exception.Message);
         }
 
         [Theory]
         [MemberData(nameof(InvalidChildAccountPlanData))]
-        public void CreateChildAccountPlan_ShouldThrowArgumentException_WhenInvalidParametersAreProvided(string code, string name, AccountPlanType type, bool acceptsLaunches, Guid? parentId, string expectedMessage)
+        public void CreateChildAccountPlan_ShouldThrowArgumentException_WhenInvalidParametersAreProvided(string code, string name, AccountPlanType type, bool acceptsLaunches, Guid parentId, string expectedMessage)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => AccountPlan.CreateChild(code, name, type, acceptsLaunches, parentId ?? Guid.Empty));
+            var exception = Assert.Throws<ArgumentException>(() => AccountPlan.Create(code, name, type, acceptsLaunches, parentId));
             Assert.Equal(expectedMessage, exception.Message);
         }
     }
